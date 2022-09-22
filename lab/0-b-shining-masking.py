@@ -37,27 +37,16 @@ def build_rgba(base_image, mask):
 
 def shining():
     image_shape = [samples.shining.duvall.shape[0], samples.shining.duvall.shape[1]]
-
-    # Partiamo con il muro
     wall_red = tint(samples.shining.wall, 0, -170, -170)
-
-    # Aggiungiamoci nicholson usando la maschera del coltello
     nicholson_blue = tint(samples.shining.nicholson, -20, -50, 0)
     nicholson_blue_hsv = to_hsv(nicholson_blue)
     nicholson_blue_hsv[:, :, 1] -= 60
     nicholson_blue_hsv[:, :, 2] += 20
     nicholson_blue = to_rgb(nicholson_blue_hsv)
-    knife_mask = (samples.shining.knife_mask[:, :, 0] > 128).astype(
-        np.uint8
-    ) * 255  # Avrei potuto usare qualunque altro canale
+    knife_mask = (samples.shining.knife_mask[:, :, 0] > 128).astype(np.uint8) * 255
     nicholson_rgba = build_rgba(nicholson_blue, knife_mask)
     fused = smart_fusion(wall_red, nicholson_rgba)
-
-    # Facciamo duvall con tinta blu
     duvall_blue = tint(samples.shining.duvall, -50, -20, 0)
-    # Esercizio extra: come avremmo potuto ottenere un effetto "coltello aggiuntivo"?
-
-    # Fondiamo con la maschera di duvall
     duvall_alpha = np.logical_or(
         np.logical_or(
             samples.shining.duvall[:, :, 0] < 250, samples.shining.duvall[:, :, 1] < 250
@@ -69,17 +58,12 @@ def shining():
     duvall_rgba[:, :, :3] = duvall_blue
     duvall_rgba[:, :, 3] = duvall_alpha
     fused = smart_fusion(fused, duvall_rgba)
-
-    # Aggiungiamo il titolo
     title_alpha = samples.shining.title[:, :, 0] > 200
     title_alpha = title_alpha.astype(np.uint8) * 255
     title_rgba = np.zeros([image_shape[0], image_shape[1], 4])
     title_rgba[:, :, :3] = samples.shining.title
     title_rgba[:, :, 3] = title_alpha
-
     fused = smart_fusion(fused, title_rgba)
-
-    # E, infine, il testo
     fused = cv.putText(
         fused,
         "JACK NICHOLSON",
@@ -98,7 +82,6 @@ def shining():
         [255, 255, 255],
         5,
     )
-
     return fused
 
 
